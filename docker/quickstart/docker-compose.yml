@@ -1,0 +1,45 @@
+# Minimal single-container Langflow for local everyday use.
+#
+#   docker compose -f docker/quickstart/docker-compose.yml up -d
+#
+# Windows users can double-click start-langflow.bat in the repo root instead.
+#
+# Data lives in the langflow-quickstart-data volume (SQLite + flows + files), so
+# it survives restarts and image updates. `docker compose down` keeps it;
+# `docker compose down -v` deletes it.
+#
+# This runs the published upstream image. To run this fork's own code instead,
+# build it with docker/build_and_push.Dockerfile and swap the `image:` line for
+# the tag you built.
+# Pinned so the project and its volume keep the same name no matter which
+# directory the compose file is invoked from.
+name: langflow
+
+services:
+  langflow:
+    image: langflowai/langflow:latest
+    container_name: langflow-quickstart
+    # Comes back automatically when Docker Desktop starts, so Langflow is just
+    # always there on localhost:7860 without running anything by hand.
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    environment:
+      # Single-user local install: skip the login screen entirely.
+      - LANGFLOW_AUTO_LOGIN=true
+      # Where flows, files, logs and secret keys are stored (the volume below).
+      - LANGFLOW_CONFIG_DIR=/app/langflow
+    volumes:
+      - langflow-quickstart-data:/app/langflow
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python -c "import urllib.request; urllib.request.urlopen('http://localhost:7860/health')"
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      # First boot loads every component and is much slower than later ones.
+      start_period: 90s
+
+volumes:
+  langflow-quickstart-data:
