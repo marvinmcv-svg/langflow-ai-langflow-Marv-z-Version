@@ -24,6 +24,11 @@ Dockerfile text
 # Declare files that will always have CRLF line endings on checkout.
 *.sln text eol=crlf
 
+# Batch files must use CRLF: cmd.exe can mis-parse labels and goto targets in a
+# .bat checked out with LF endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
 # Denote all files that are truly binary and should not be modified.
 *.png binary
 *.jpg binary
